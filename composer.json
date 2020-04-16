@@ -1,19 +1,19 @@
 {
-  "name": "mwdelaney/sage-advanced-custom-fields",
-  "description": "Advanced Custom Fields local JSON setup for Sage 9 based themes",
-  "keywords": ["wordpress", "advanced custom fields", "json"],
-  "homepage": "https://github.com/MWDelaney/sage-advanced-custom-fields",
+  "name": "sermodigital/sage-gravity-forms",
+  "description": "Gravity Forms local JSON setup for Sage 9 based themes",
+  "keywords": ["wordpress", "gravity forms", "json"],
+  "homepage": "https://github.com/SermoDigital/sage-gravity-forms",
   "license": "MIT",
   "authors": [
     {
-      "name": "Michael W. Delaney",
-      "email": "michael@michaeldelaney.me"
-		}
+      "name": "Justin Lettenmair",
+      "email": "justin@sermodigital.com"
+    }
   ],
   "require": {
-    "php": ">=5.3.2"
+    "php": ">=7.0"
   },
-	"autoload": {
-    "files": ["advanced-custom-fields.php"]
+  "autoload": {
+    "files": ["gravity-forms.php"]
   }
 }
