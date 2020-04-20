@@ -8,15 +8,29 @@
 
 if (function_exists('add_action')) {
 
-    add_action('gform_after_save_form', function($form, $is_new) {
+    function get_sage_gform_save_path($from_theme_root=false) {
         // Set Sage9 friendly path at /theme-directory/resources/assets/gravity-forms-json
         if(is_dir(get_stylesheet_directory() . '/assets')) {
             // This is Sage 9
-            $path = get_stylesheet_directory() . '/assets/gravity-forms-json';
+            $path = '/assets/gravity-forms-json';
         } else {
             // This is Sage 10
-            $path = get_stylesheet_directory() . '/resources/assets/gravity-forms-json';
+            $path = '/resources/assets/gravity-forms-json';
         }
+
+        if(!$from_theme_root) {
+            $path = get_stylesheet_directory() . $path;
+        }
+
+        return $path;
+    }
+
+    // When this theme is first activated (or when Gravity Forms is activated),
+    // these forms will be automatically loaded in
+    define('GF_THEME_IMPORT_FILE', get_sage_gform_save_path(true) . '/_all_gforms.json');
+
+    add_action('gform_after_save_form', function($form, $is_new) {
+        $path = get_sage_gform_save_path();
 
         // make dir if does not exist
         if(!file_exists($path)) {
@@ -29,24 +43,37 @@ if (function_exists('add_action')) {
         }
 
         // Now that we have our path, let's save this form's JSON
-        $form_json = json_encode( $form );
+        $form_json = json_encode($form);
         $form_id   = $form['id'];
-        $file      = 'form_' . $form_id . '.json';
+        $file      = 'gform_' . $form_id . '.json';
 
         // write file
         $f = fopen("{$path}/{$file}", 'w');
         fwrite($f, $form_json);
         fclose($f);
 
+        // Now, to make GF's theme import work, we need all our forms in a single file
+        // Collect all our gform files
+        $all_form_files = glob("{$path}/gform_*.json");
+        $all_forms      = [];
+        $form_count     = 0;
+        foreach($all_form_files as $form_file) {
+            $all_forms[$form_count++] = json_decode(file_get_contents($form_file));
+        }
+
+        // Add the version as a top level key (otherwise GF won't accept it as a
+        // valid import file)
+        $all_forms['version'] = $all_forms[0]->version;
+
+        // Cast the array to an object so PHP will encode the keys as strings
+        $all_forms_json = json_encode((object) $all_forms);
+        $all_file       = '_all_gforms.json';
+
+        // Write out all the forms to a single file
+        $f = fopen("{$path}/{$all_file}", 'w');
+        fwrite($f, $all_forms_json);
+        fclose($f);
+
         return true;
     }, 10, 2 );
-
-
-    /**
-     * How should we handle loading these? We can use the logic from
-     * gravityformscli:
-     * https://github.com/gravityforms/gravityformscli/blob/master/includes/class-gf-cli-form.php#L241
-     * but we need a way to initiate it. Maybe a custom tab here:
-     * https://docs.gravityforms.com/gform_export_page_view/
-     */
 }
